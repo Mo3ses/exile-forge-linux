@@ -41,9 +41,12 @@ Wrapper para rodar o **Exile Forge** (ferramenta de modding de `.ggpk` do Path o
 ```bash
 CANDIDATE_HOSTS=( "2694490:Path of Exile 2" "238960:Path of Exile" )
 # Auto-detecta qual está instalado na ordem acima — POE2 primeiro, depois POE1.
-RELEASE_TAG="V4.4"       # atualizar pra V5.0 quando sair
-DOWNLOAD_URL="..."       # URL da release no GitHub (deriva de RELEASE_TAG)
+
+RELEASE_TAG="${RELEASE_TAG:-latest}"   # default "latest" = auto-detecta via redirect GitHub
+DOWNLOAD_URL="..."                     # resolvida em runtime a partir de RESOLVED_TAG
 ```
+
+`RELEASE_TAG` também aceita override via env var: `RELEASE_TAG=V4.3 ./install.sh`.
 
 ## Pra rodar em outra máquina Linux
 
@@ -66,7 +69,7 @@ chmod +x install.sh
 ## Quando Claude Code for ajudar neste repo
 
 - Se usuário pedir pra **rodar**: verificar pré-requisitos (Steam, POE2, protontricks), rodar `./install.sh` ou `start.sh`
-- Se usuário pedir pra **atualizar**: editar `RELEASE_TAG` no `install.sh`, commitar
+- Se usuário pedir pra **atualizar**: como `RELEASE_TAG` é auto-detectado via redirect de `/releases/latest`, basta `rm ~/exile-forge/Exile\ Forge.exe && ./install.sh`. Não precisa commit em wrapper. (Se o usuário pediu uma versão específica não-lastest, setar `RELEASE_TAG=X.Y ./install.sh`.)
 - Se usuário pedir pra **portar pra outro jogo Proton**: adicionar nova entrada `appid:NomeDoJogo` no array `CANDIDATE_HOSTS` no `install.sh`
 - Se WPF renderizar mal: tentar `DXVK_HUD=1` ou `PROTON_USE_WINED3D=1`
 - **Não tentar** substituir DLLs, patchear o exe, ou inventar workarounds — Exile Forge funciona out-of-the-box

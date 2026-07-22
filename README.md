@@ -34,7 +34,7 @@ chmod +x install.sh
 
 O `install.sh`:
 - Verifica pré-requisitos (auto-detecta POE2 ou POE1 instalado)
-- Baixa o Exile Forge V4.4 do GitHub
+- **Auto-detecta a última release** do GitHub via redirect `/releases/latest` → tag (ex: V4.4) — sem precisar editar o script pra atualizar
 - Cria `start.sh` (launcher)
 - Baixa ícone placeholder
 - Cria entrada `.desktop` no menu do sistema
@@ -95,12 +95,20 @@ Depois rode `./install.sh --uninstall` e reinstale.
 
 ### Atualizar pra nova versão
 
-Edite `RELEASE_TAG` no topo do `install.sh` (ex: de `"V4.4"` pra `"V5.0"`). O instalador só baixa se `Exile Forge.exe` não existir — então:
+O instalador baixa a **última release** automaticamente — basta remover o exe antigo e reinstalar:
 
 ```bash
 rm ~/exile-forge/Exile\ Forge.exe
 ./install.sh
 ```
+
+Pro fixar numa versão específica (ex: testar beta, ou baixar versão antiga), use a env var:
+
+```bash
+RELEASE_TAG=V4.3 ./install.sh
+```
+
+(Para o app Exile Forge em si, **não há auto-update interno** — você precisa baixar manualmente. Use este wrapper pra ficar sempre na última.)
 
 ## Desinstalação
 

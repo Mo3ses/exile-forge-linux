@@ -27,9 +27,12 @@ CANDIDATE_HOSTS=(
 PROTON_APPID=""
 GAME_NAME=""
 
-# URL da release (verifique em github.com/talagio90/GGPK-Modding-Tool/releases)
-RELEASE_TAG="V4.4"
-DOWNLOAD_URL="https://github.com/talagio90/GGPK-Modding-Tool/releases/download/${RELEASE_TAG}/Exile.Forge.zip"
+# URL da release (verifique em github.com/talagio90/GGPK-Modding-Tool/releases).
+# "latest" → resolve dinamicamente via redirect /releases/latest.
+# Pra fixar versão específica, coloque a tag (ex: "V4.4") antes de rodar.
+RELEASE_TAG="${RELEASE_TAG:-latest}"
+RESOLVED_TAG=""
+DOWNLOAD_URL="https://github.com/talagio90/GGPK-Modding-Tool/releases/latest"
 
 # ---------- Cores ----------
 RED='\033[0;31m'
@@ -72,6 +75,7 @@ check_prereqs() {
         exit 1
     fi
     info "${GAME_NAME} (appid ${PROTON_APPID}) será usado como host do prefixo Proton"
+    info "Versão alvo: ${RELEASE_TAG} (será resolvida automaticamente antes do download)"
 
     if ! command -v protontricks-launch >/dev/null 2>&1; then
         err "protontricks não encontrado."
@@ -93,6 +97,25 @@ check_prereqs() {
     fi
 }
 
+# ---------- Resolução de versão ----------
+# Se RELEASE_TAG=="latest", segue o redirect /releases/latest do GitHub e
+# extrai a tag real. Sem dependência extra — só curl + grep + sed.
+resolve_release_tag() {
+    if [[ "$RELEASE_TAG" != "latest" ]]; then
+        RESOLVED_TAG="$RELEASE_TAG"
+        return 0
+    fi
+
+    local effective_url
+    effective_url=$(curl -fsSL -o /dev/null -w '%{url_effective}' \
+        "https://github.com/talagio90/GGPK-Modding-Tool/releases/latest" 2>/dev/null) \
+        || { err "Falha ao resolver última release do GitHub."; return 1; }
+
+    RESOLVED_TAG=$(printf '%s' "$effective_url" | grep -oE 'tag/V[^/]+' | head -1 | sed 's|tag/||')
+    [[ -n "$RESOLVED_TAG" ]] || { err "Não extraiu tag de: $effective_url"; return 1; }
+    return 0
+}
+
 # ---------- Download ----------
 download_exile_forge() {
     mkdir -p "$APP_DIR"
@@ -102,7 +125,12 @@ download_exile_forge() {
         return 0
     fi
 
-    info "Baixando Exile Forge ${RELEASE_TAG}..."
+    if ! resolve_release_tag; then
+        err "Defina RELEASE_TAG manualmente (ex: RELEASE_TAG=V4.4 ./install.sh)."
+        exit 1
+    fi
+    DOWNLOAD_URL="https://github.com/talagio90/GGPK-Modding-Tool/releases/download/${RESOLVED_TAG}/Exile.Forge.zip"
+    info "Baixando Exile Forge ${RESOLVED_TAG}..."
     if ! curl -fsSL -o "$ZIP_PATH" "$DOWNLOAD_URL"; then
         err "Falha no download. Verifique:"
         err "  $DOWNLOAD_URL"
@@ -175,7 +203,7 @@ Version=1.0
 Type=Application
 Name=$APP_NAME
 GenericName=GGPK Modding Tool
-Comment=Path of Exile GGPK modding toolkit (${RELEASE_TAG})
+Comment=Path of Exile GGPK modding toolkit (${RESOLVED_TAG:-$RELEASE_TAG})
 Exec=$LAUNCHER %u
 Icon=exile-forge
 Terminal=false

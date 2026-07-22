@@ -9,7 +9,7 @@ Exile Forge é um app .NET 10 + WPF Windows-only. Funciona **out-of-the-box** no
 | Dependência | Instalação |
 |---|---|
 | **Steam** | `sudo pacman -S steam` (Arch/CachyOS) / `sudo apt install steam` (Ubuntu) |
-| **Path of Exile 2** (ou outro jogo Proton) | Instalar pela Steam — serve apenas para prover um prefixo Wine Proton funcional |
+| **Path of Exile 1 ou 2** | Instalar pela Steam — serve apenas para prover um prefixo Wine Proton funcional (qualquer um dos dois serve; o instalador auto-detecta) |
 | **protontricks** | `sudo pacman -S protontricks` (Arch/CachyOS) ou [instalação manual](https://github.com/Matoking/protontricks) |
 | **Proton** (>= 8.0) | Já vem com Steam (Proton Experimental ou Proton 9.x) |
 | `unzip`, `curl` | Já presentes na maioria das distros |
@@ -18,7 +18,7 @@ Exile Forge é um app .NET 10 + WPF Windows-only. Funciona **out-of-the-box** no
 
 ```bash
 command -v steam protontricks-launch unzip curl
-ls ~/.steam/steam/steamapps/appmanifest_2694490.acf   # appid do POE2
+ls ~/.steam/steam/steamapps/appmanifest_2694490.acf   # POE2 (ou appmanifest_238960.acf pra POE1)
 ```
 
 ## Instalação
@@ -33,8 +33,8 @@ chmod +x install.sh
 ```
 
 O `install.sh`:
-- Verifica pré-requisitos
-- Baixa o Exile Forge V4.3 do GitHub
+- Verifica pré-requisitos (auto-detecta POE2 ou POE1 instalado)
+- Baixa o Exile Forge V4.4 do GitHub
 - Cria `start.sh` (launcher)
 - Baixa ícone placeholder
 - Cria entrada `.desktop` no menu do sistema
@@ -54,9 +54,9 @@ O `install.sh`:
 | Pelo menu de apps | Procure "Exile Forge" no menu do seu DE |
 | Pelo terminal | `~/exile-forge/start.sh` |
 | Pelo GTK | `gtk-launch exile-forge` |
-| Diretamente | `protontricks-launch --no-runtime --appid 2694490 "$HOME/exile-forge/Exile Forge.exe"` |
+| Diretamente | `protontricks-launch --no-runtime --appid <POE_APPID> "$HOME/exile-forge/Exile Forge.exe"` onde `<POE_APPID>` é `2694490` (POE2) ou `238960` (POE1) |
 
-## Apontar pro POE2
+## Apontar pro Path of Exile
 
 Ao abrir o Exile Forge pela primeira vez, ele pede o path do jogo. Use:
 
@@ -64,7 +64,11 @@ Ao abrir o Exile Forge pela primeira vez, ele pede o path do jogo. Use:
 /home/<seu-user>/.steam/steam/steamapps/common/Path of Exile 2
 ```
 
-(ou `Path of Exile` para POE1)
+ou, se você usa POE1:
+
+```
+/home/<seu-user>/.steam/steam/steamapps/common/Path of Exile
+```
 
 ## Customização
 
@@ -77,18 +81,21 @@ cp ~/Downloads/exile-forge-logo.png ~/.local/share/icons/hicolor/256x256/apps/ex
 
 ### Usar outro jogo Proton como host do prefixo
 
-Edite o topo do `install.sh`:
+O instalador já auto-detecta **Path of Exile 2** (appid 2694490) ou **Path of Exile 1** (appid 238960) — primeiro instalado vence. Pra usar um terceiro jogo Proton, edite o array `CANDIDATE_HOSTS` no topo do `install.sh`:
 
 ```bash
-PROTON_APPID="123456"  # appid de outro jogo Proton
-GAME_NAME="Outro Jogo"
+CANDIDATE_HOSTS=(
+    "2694490:Path of Exile 2"
+    "238960:Path of Exile"
+    "123456:Outro Jogo"   # adicione outro appid aqui
+)
 ```
 
 Depois rode `./install.sh --uninstall` e reinstale.
 
 ### Atualizar pra nova versão
 
-Edite `RELEASE_TAG` no topo do `install.sh` (ex: `"V4.4"`). O instalador só baixa se `Exile Forge.exe` não existir — então:
+Edite `RELEASE_TAG` no topo do `install.sh` (ex: de `"V4.4"` pra `"V5.0"`). O instalador só baixa se `Exile Forge.exe` não existir — então:
 
 ```bash
 rm ~/exile-forge/Exile\ Forge.exe
@@ -118,9 +125,9 @@ Remove launcher, ícone e entrada de menu. Opcionalmente remove o executável.
 
 ## Como funciona
 
-`start.sh` chama `protontricks-launch --no-runtime --appid 2694490`, que:
+`start.sh` chama `protontricks-launch --no-runtime --appid <POE_APPID>` (detectado em runtime — POE2 ou POE1), que:
 1. Usa o Wine do Proton Experimental
-2. Roda dentro do prefixo Proton do POE2 (sem interferir)
+2. Roda dentro do prefixo Proton do jogo detectado (sem interferir)
 3. Carrega nosso `Exile Forge.exe` (que tem .NET 10 bundled)
 
 DXVK traduz D3D9 do WPF para Vulkan automaticamente. Resultado: app nativo em janela, sem terminal.
@@ -131,7 +138,7 @@ DXVK traduz D3D9 do WPF para Vulkan automaticamente. Resultado: app nativo em ja
 
 ```bash
 # Roda com debug pra ver o erro
-WINEDEBUG=+module,+seh protontricks-launch --no-runtime --appid 2694490 \
+WINEDEBUG=+module,+seh protontricks-launch --no-runtime --appid <POE_APPID> \
     "$HOME/exile-forge/Exile Forge.exe"
 ```
 

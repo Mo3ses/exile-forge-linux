@@ -39,9 +39,10 @@ Wrapper para rodar o **Exile Forge** (ferramenta de modding de `.ggpk` do Path o
 ## Variáveis importantes no install.sh
 
 ```bash
-PROTON_APPID="2694490"   # POE2 — pode usar outro jogo Proton
-RELEASE_TAG="V4.3"       # atualizar pra V4.4 quando sair
-DOWNLOAD_URL="..."       # URL da release no GitHub
+CANDIDATE_HOSTS=( "2694490:Path of Exile 2" "238960:Path of Exile" )
+# Auto-detecta qual está instalado na ordem acima — POE2 primeiro, depois POE1.
+RELEASE_TAG="V4.4"       # atualizar pra V5.0 quando sair
+DOWNLOAD_URL="..."       # URL da release no GitHub (deriva de RELEASE_TAG)
 ```
 
 ## Pra rodar em outra máquina Linux
@@ -66,7 +67,7 @@ chmod +x install.sh
 
 - Se usuário pedir pra **rodar**: verificar pré-requisitos (Steam, POE2, protontricks), rodar `./install.sh` ou `start.sh`
 - Se usuário pedir pra **atualizar**: editar `RELEASE_TAG` no `install.sh`, commitar
-- Se usuário pedir pra **portar pra outro jogo Proton**: editar `PROTON_APPID` + `GAME_NAME` no `install.sh`
+- Se usuário pedir pra **portar pra outro jogo Proton**: adicionar nova entrada `appid:NomeDoJogo` no array `CANDIDATE_HOSTS` no `install.sh`
 - Se WPF renderizar mal: tentar `DXVK_HUD=1` ou `PROTON_USE_WINED3D=1`
 - **Não tentar** substituir DLLs, patchear o exe, ou inventar workarounds — Exile Forge funciona out-of-the-box
 

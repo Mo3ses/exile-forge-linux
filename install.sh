@@ -16,13 +16,19 @@ ICON_DIR="$HOME/.local/share/icons/hicolor/256x256/apps"
 ICON_PATH="$ICON_DIR/exile-forge.png"
 ZIP_PATH="$APP_DIR/Exile.Forge.zip"
 
-# AppId do prefixo Proton onde o Exile Forge vai rodar.
-# POE2 = 2694490 (mais comum). Pode usar outro jogo Proton.
-PROTON_APPID="2694490"
-GAME_NAME="Path of Exile 2"
+# Candidatos a host Proton (Exile Forge funciona pros dois).
+# Auto-detecção na ordem abaixo — primeiro instalado vence.
+CANDIDATE_HOSTS=(
+    "2694490:Path of Exile 2"
+    "238960:Path of Exile"
+)
+
+# Mantidos pra retro-compat — preenchidos por check_prereqs().
+PROTON_APPID=""
+GAME_NAME=""
 
 # URL da release (verifique em github.com/talagio90/GGPK-Modding-Tool/releases)
-RELEASE_TAG="V4.3"
+RELEASE_TAG="V4.4"
 DOWNLOAD_URL="https://github.com/talagio90/GGPK-Modding-Tool/releases/download/${RELEASE_TAG}/Exile.Forge.zip"
 
 # ---------- Cores ----------
@@ -46,14 +52,26 @@ check_prereqs() {
     fi
     info "Steam: ok"
 
-    local manifest="$HOME/.steam/steam/steamapps/appmanifest_${PROTON_APPID}.acf"
-    if [[ ! -f "$manifest" ]]; then
-        err "Jogo Proton com appid ${PROTON_APPID} (${GAME_NAME}) não está instalado."
-        err "  Instale ${GAME_NAME} pela Steam primeiro."
-        err "  Ou edite PROTON_APPID no topo deste script pra usar outro jogo Proton."
+    local manifest=""
+    for entry in "${CANDIDATE_HOSTS[@]}"; do
+        local candidate_appid="${entry%%:*}"
+        local candidate_name="${entry#*:}"
+        if [[ -f "$HOME/.steam/steam/steamapps/appmanifest_${candidate_appid}.acf" ]]; then
+            PROTON_APPID="$candidate_appid"
+            GAME_NAME="$candidate_name"
+            break
+        fi
+    done
+
+    if [[ -z "$PROTON_APPID" ]]; then
+        err "Nenhum jogo Proton compatível está instalado."
+        err "  Instale um destes pela Steam (qualquer um serve como host do prefixo):"
+        for entry in "${CANDIDATE_HOSTS[@]}"; do
+            err "    - ${entry#*:} (appid ${entry%%:*})"
+        done
         exit 1
     fi
-    info "${GAME_NAME} (appid ${PROTON_APPID}) está instalado"
+    info "${GAME_NAME} (appid ${PROTON_APPID}) será usado como host do prefixo Proton"
 
     if ! command -v protontricks-launch >/dev/null 2>&1; then
         err "protontricks não encontrado."
